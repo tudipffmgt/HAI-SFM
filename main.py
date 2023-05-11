@@ -1,10 +1,11 @@
 import os
 import subprocess
 
-from image_processing import downsample_image
+from image_processing import downsample_images
+from generate_image_pairs import get_image_pairs, extract_valid_image_pairs
 
 
-def sg_feature_matching(input_dir, superglue_path, setting, output_dir):
+def sg_feature_matching(input_dir, superglue_path, image_pairs, setting, output_dir):
     # List all the downsampled image files in the output directory.
     image_files = [os.path.join(input_dir, f) for f in os.listdir(input_dir) if f.endswith('.jpg')]
 
@@ -16,7 +17,9 @@ def sg_feature_matching(input_dir, superglue_path, setting, output_dir):
 
     # Run SuperGlue feature matching on each pair of consecutive images.
     # out_file = os.path.join(output_dir, f'{os.path.basename(img1)[:-4]}_{os.path.basename(img2)[:-4]}.h5')
-    cmd = f'python {superglue_path} --input {input_dir} --superglue {setting} --output_dir {output_dir} --resize {-1} --no_display'
+    cmd = f'python {superglue_path} --input_dir {input_dir} --input_pairs {image_pairs} --superglue {setting} ' \
+          f'--output_dir {output_dir} --max_keypoints {1024} --resize {-1}'
+
     print(f'Running SuperGlue on {input_dir}')
     subprocess.run(cmd.split())
 
@@ -26,37 +29,29 @@ def sg_feature_matching(input_dir, superglue_path, setting, output_dir):
 def main():
     # Define the path to your data directory.
     input_dir = 'data'
-    output_dir ='downsampled'
-
-    # Create the output directory if it doesn't exist.
-    if not os.path.exists(output_dir):
-        os.makedirs(output_dir)
-
-    # List all the image files in the data directory.
-    image_files = [os.path.join(input_dir, f) for f in os.listdir(input_dir)
-                   if f.endswith('.jpg') or f.endswith('.png') or f.endswith('.tif')]
-
-    # Check if files were found
-    if len(image_files) > 0:
-        print(f'Found {len(image_files)} image files in {input_dir}.')
-    else:
-        print(f'No image files found in {input_dir}.')
-
-    # Process each image file.
-    for image_path in image_files:
-        # Downsample the image.
-        print(f'Downsampling {image_path}...')
-        downsampled_image = downsample_image(image_path, output_dir)
-
-    # Define the path to the SuperGlue repository.
-    superglue_path = 'SuperGluePretrainedNetwork/demo_superglue.py'
+    output_dir_downsampled = 'downsampled'
     output_dir_superglue = 'superglue'
 
+    # Create directories if they do not exist
     if not os.path.exists(output_dir_superglue):
         os.makedirs(output_dir_superglue)
+
+    # Part 1: Downsampling
+    # downsample_images(input_dir, output_dir)
+
+    # Part 2: Get image pairs
+    # image_pairs = get_image_pairs(output_dir_downsampled, output_dir_downsampled, False)
+
+    # Part 3: SuperGlue matching
+    # Define the path to the SuperGlue repository.
+    # superglue_path = 'SuperGluePretrainedNetwork/match_pairs.py'
+
     # Perform SuperGlue feature matching on all image pairs.
-    setting = 'outdoor'
-    sg_feature_matching(output_dir, superglue_path, setting, output_dir_superglue)
+    # setting = 'outdoor'
+    # sg_feature_matching(output_dir_downsampled, superglue_path, image_pairs, setting, output_dir_superglue)
+
+    # Part 4: Find feature tracks
+    extract_valid_image_pairs(output_dir_superglue)
 
 
 main()
