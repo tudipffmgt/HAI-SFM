@@ -2,7 +2,7 @@ import os
 import numpy as np
 
 
-def get_image_pairs(input_dir, output_dir, ordered=True, along_track_overlap=0.6, cross_track_overlap=0.3, ):
+def get_image_pairs(input_dir, output_dir, ordered=True, along_track_overlap=0.6, cross_track_overlap=0.3):
 
     image_files = [os.path.join(input_dir, f) for f in os.listdir(input_dir) if f.endswith('.jpg')]
 
@@ -17,9 +17,26 @@ def get_image_pairs(input_dir, output_dir, ordered=True, along_track_overlap=0.6
 
     # Check if the files are ordered (user input)
     if ordered:
-        print('ordered')
-        # TODO implement the smart along_track and cross_track_overlap
+        print('Assuming that the images in the directory are' + '\033[32m' + ' ordered.' + '\033[0m')
+
+        inv_overlap = 1 - along_track_overlap
+        num_sequential_images = 0.96/inv_overlap  # one would expect 1/inv_overlap,
+        # but we do not consider border regions (2% of image borders) for matching
+
+        for i in range(len(image_files) - 1):
+            image_path1 = image_files[i]
+            for j in range(i + 1, len(image_files)):
+                if j - i <= num_sequential_images:
+                    image_path2 = image_files[j]
+                    with open(matched_pairs_file, 'a') as f:
+                        f.write(os.path.basename(image_path1) + ' ' + os.path.basename(image_path2) + '\n')
+                else:
+                    break
+
+        # TODO cross_track_overlap
     else:
+        print('Assuming that the images in the directory are' + '\033[33m' + ' not ordered. ' + '\033[0m' +
+              'Write an exhaustive matching file.')
         for i in range(len(image_files) - 1):
             image_path1 = image_files[i]
             for j in range(i + 1, len(image_files)):
