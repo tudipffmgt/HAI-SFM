@@ -1,8 +1,8 @@
 import os
 import subprocess
 
-from image_processing import downsample_images
-from generate_image_pairs import get_image_pairs, extract_valid_image_pairs
+from image_processing import downsample_images, rotate_images
+from generate_image_pairs import get_image_pairs, get_image_tracks
 
 
 def sg_feature_matching(input_dir, superglue_path, image_pairs, setting, output_dir):
@@ -28,6 +28,8 @@ def sg_feature_matching(input_dir, superglue_path, image_pairs, setting, output_
 
 def main():
     # Define the path to your data directory.
+    # This is the intra-epoch workflow!
+
     input_dir = 'data'
     output_dir_downsampled = 'downsampled'
     output_dir_superglue = 'superglue'
@@ -37,21 +39,24 @@ def main():
         os.makedirs(output_dir_superglue)
 
     # Part 1: Downsampling
-    # downsample_images(input_dir, output_dir)
+    ext = downsample_images(input_dir, output_dir_downsampled)
 
     # Part 2: Get image pairs
-    # image_pairs = get_image_pairs(output_dir_downsampled, output_dir_downsampled, False)
+    image_pairs = get_image_pairs(output_dir_downsampled, output_dir_downsampled, False)
 
     # Part 3: SuperGlue matching
     # Define the path to the SuperGlue repository.
-    # superglue_path = 'SuperGluePretrainedNetwork/match_pairs.py'
+    superglue_path = 'SuperGluePretrainedNetwork/match_pairs.py'
 
     # Perform SuperGlue feature matching on all image pairs.
-    # setting = 'outdoor'
-    # sg_feature_matching(output_dir_downsampled, superglue_path, image_pairs, setting, output_dir_superglue)
+    setting = 'outdoor'
+    sg_feature_matching(output_dir_downsampled, superglue_path, image_pairs, setting, output_dir_superglue)
 
     # Part 4: Find feature tracks
-    extract_valid_image_pairs(output_dir_superglue)
+    image_tracks = get_image_tracks(output_dir_superglue)
+
+    # Part 5: Rotate images of the smallest separate track
+    # rotate_images(input_dir, image_tracks, ext)
 
 
 main()
