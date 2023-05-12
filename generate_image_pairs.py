@@ -30,7 +30,7 @@ def get_image_pairs(input_dir, output_dir, ordered=True, along_track_overlap=0.6
     return matched_pairs_file
 
 
-def extract_valid_image_pairs(input_dir, confidence_threshold=0.5, matches_threshold=100):
+def get_image_tracks(input_dir, confidence_threshold=0.5, matches_threshold=100):
 
     # List all npz files in the data directory.
     npz_files = [os.path.join(input_dir, f) for f in os.listdir(input_dir) if f.endswith('.npz')]
@@ -41,23 +41,48 @@ def extract_valid_image_pairs(input_dir, confidence_threshold=0.5, matches_thres
     else:
         print(f'No npz files found in {input_dir}.')
 
+    # create an empty dictionary to store matched images
+    image_tracks = {}
+
+    print(f'Reading npz files.')
     for npz_file in npz_files:
 
-        print(f'Reading npz files.')
         npz = np.load(npz_file)
-        # extract keypoints0, keypoints1, matches, and match_confidence
-        keypoints0 = npz['keypoints0']
-        keypoints1 = npz['keypoints1']
-        matches = npz['matches']
-        match_confidence = npz['match_confidence']
 
-        # check the shape of keypoints0, keypoints1, matches, and match_confidence
-        # print('keypoints0 shape:', keypoints0.shape)
-        # print('keypoints1 shape:', keypoints1.shape)
-        # print('matches shape:', matches.shape)
-        # print('match_confidence shape:', match_confidence.shape)
+        # extract keypoints0, keypoints1, matches, and match_confidence
+        # keypoints0 = npz['keypoints0']
+        # keypoints1 = npz['keypoints1']
+        # matches = npz['matches']
+        match_confidence = npz['match_confidence']
 
         num_matches = np.sum(match_confidence > confidence_threshold)
 
-        print(num_matches)
-        # TODO print the image names to receive feature tracks!
+        # print(num_matches)
+        if num_matches > 100:
+
+            basename = os.path.basename(npz_file)  # extract filename without directory path
+            image_names = basename.split("_matches.npz")[0].split("_")
+            image_name1 = image_names[0] + ".jpg"
+            image_name2 = image_names[1] + ".jpg"
+
+            # Check if either image name is already part of a track
+            new_track = True
+            for track_key in image_tracks.keys():
+                if image_name1 in image_tracks[track_key] or image_name2 in image_tracks[track_key]:
+                    image_tracks[track_key].add(image_name1)
+                    image_tracks[track_key].add(image_name2)
+                    new_track = False
+                    break
+
+            # If neither image name is part of a track, create a new track
+            if new_track:
+                track_key = f"{image_name1}_{image_name2}"
+                image_tracks[track_key] = {image_name1, image_name2}
+
+    # Print tracks
+    for track in image_tracks.values():
+        print(track)
+        #print("Track:", ", ".join(sorted(list(track))))
+
+    return image_tracks
+    # TODO if tracks are empty use DISK!
