@@ -47,7 +47,7 @@ def get_image_pairs(input_dir, output_dir, ordered=True, along_track_overlap=0.6
     return matched_pairs_file
 
 
-def get_image_tracks(input_dir, confidence_threshold=0.5, matches_threshold=100):
+def get_image_tracks(input_dir, confidence_threshold=0.5, matches_threshold=40):
 
     # List all npz files in the data directory.
     npz_files = [os.path.join(input_dir, f) for f in os.listdir(input_dir) if f.endswith('.npz')]
@@ -74,8 +74,8 @@ def get_image_tracks(input_dir, confidence_threshold=0.5, matches_threshold=100)
 
         num_matches = np.sum(match_confidence > confidence_threshold)
 
-        # print(num_matches)
-        if num_matches > 100:
+        print(num_matches)
+        if num_matches > matches_threshold:
 
             basename = os.path.basename(npz_file)  # extract filename without directory path
             image_names = basename.split("_matches.npz")[0].split("_")
