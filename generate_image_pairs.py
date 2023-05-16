@@ -53,6 +53,24 @@ def get_image_pairs(input_dir, output_dir, ordered=True, along_track_overlap=0.6
 
     return matched_pairs_file
 
+def get_image_pairs_tiles():
+    # TODO Continue here!!
+    input_file = os.path.join('data', 'matches_bounding_boxes.txt')
+
+    with open(input_file, 'r') as f:
+        for line in f:
+            line = line.strip()
+            if line:
+                parts = line.split(',')
+                img1_path = parts[0].strip()
+                img2_path = parts[1].strip()
+                bbox1 = eval(parts[2].strip())
+                bbox2 = eval(parts[3].strip())
+                match = (img1_path, img2_path, bbox1, bbox2)
+                print(match)
+                #matches.append(match)
+
+
 
 def get_image_tracks(input_dir_data, input_dir_superglue, downsample_factor, confidence_threshold=0.5, matches_threshold=40):
 
