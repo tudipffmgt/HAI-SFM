@@ -1,6 +1,7 @@
 import os
 import subprocess
 
+
 def sg_feature_matching(input_dir, superglue_path, image_pairs, setting, output_dir):
     # List all the downsampled image files in the output directory.
     image_files = [os.path.join(input_dir, f) for f in os.listdir(input_dir) if f.endswith('.jpg')]
@@ -27,4 +28,14 @@ def sg_feature_matching(input_dir, superglue_path, image_pairs, setting, output_
     print('SuperGlue feature matching completed.')
 
 
-# def disk_feature_matching(input_dir):
+# def disk_feature_matching(input_dir, disk_path, output_dir):
+#
+#     disk_feature_detection = os.path.join(disk_path, 'detect.py')
+#
+#     cmd = f'python {disk_feature_detection} {output_dir} {input_dir}'
+#
+#     print(f'Running DISK on {input_dir}')
+#     subprocess.run(cmd.split())
+#
+#     print('DISK feature matching completed.')
+

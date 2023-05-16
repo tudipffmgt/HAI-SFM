@@ -2,6 +2,13 @@ import os
 import numpy as np
 
 
+def bounding_box(points, upsample_factor=1):
+    x_coordinates, y_coordinates = zip(*points)
+
+    return [(min(x_coordinates) * upsample_factor, min(y_coordinates) * upsample_factor),
+            (max(x_coordinates) * upsample_factor, max(y_coordinates) * upsample_factor)]
+
+
 def get_image_pairs(input_dir, output_dir, ordered=True, along_track_overlap=0.6, cross_track_overlap=0.3):
 
     image_files = [os.path.join(input_dir, f) for f in os.listdir(input_dir) if f.endswith('.jpg')]
@@ -47,38 +54,57 @@ def get_image_pairs(input_dir, output_dir, ordered=True, along_track_overlap=0.6
     return matched_pairs_file
 
 
-def get_image_tracks(input_dir, confidence_threshold=0.5, matches_threshold=40):
+def get_image_tracks(input_dir_data, input_dir_superglue, downsample_factor, confidence_threshold=0.5, matches_threshold=40):
 
     # List all npz files in the data directory.
-    npz_files = [os.path.join(input_dir, f) for f in os.listdir(input_dir) if f.endswith('.npz')]
+    npz_files = [os.path.join(input_dir_superglue, f) for f in os.listdir(input_dir_superglue) if f.endswith('.npz')]
 
     # Check if files were found
     if len(npz_files) > 0:
-        print(f'Found {len(npz_files)} image files in {input_dir}.')
+        print(f'Found {len(npz_files)} image files in {input_dir_superglue}.')
     else:
-        print(f'No npz files found in {input_dir}.')
+        print(f'No npz files found in {input_dir_superglue}.')
 
     # create an empty dictionary to store matched images
     image_tracks = {}
+
+    # Write bounding boxes of feature matches to file
+    file = open(os.path.join(input_dir_data, 'matches_bounding_boxes.txt'), 'w')
 
     print(f'Reading npz files.')
     for npz_file in npz_files:
 
         npz = np.load(npz_file)
 
-        # extract keypoints0, keypoints1, matches, and match_confidence
-        # keypoints0 = npz['keypoints0']
-        # keypoints1 = npz['keypoints1']
-        # matches = npz['matches']
+        # extract match_confidence
         match_confidence = npz['match_confidence']
-
+        high_confidence_indices = np.where(match_confidence > confidence_threshold)
         num_matches = np.sum(match_confidence > confidence_threshold)
 
-        print(num_matches)
+        # print(num_matches)
         if num_matches > matches_threshold:
 
+            # Extract the filenames
             basename = os.path.basename(npz_file)  # extract filename without directory path
             image_names = basename.split("_matches.npz")[0].split("_")
+
+            # Extract keypoints, matches, and match confidence from the npz file
+            keypoints0 = npz['keypoints0']
+            keypoints1 = npz['keypoints1']
+            matches = npz['matches']
+
+            # Extract keypoints with high confidence
+            high_confidence_keypoints0 = keypoints0[high_confidence_indices]
+            high_confidence_keypoints1 = keypoints1[matches[high_confidence_indices]]
+
+            # Calculate the bounding boxes for the keypoints
+            b1 = bounding_box(high_confidence_keypoints0, downsample_factor)
+            b2 = bounding_box(high_confidence_keypoints1, downsample_factor)
+
+            # Print the extracted keypoints and matches
+            print(f'{image_names[0]}, {image_names[1]}, {b1}, {b2}')
+            file.write(f'{image_names[0]}, {image_names[1]}, {b1}, {b2}\n')
+
             image_name1 = image_names[0] + ".jpg"
             image_name2 = image_names[1] + ".jpg"
 
@@ -96,10 +122,14 @@ def get_image_tracks(input_dir, confidence_threshold=0.5, matches_threshold=40):
                 track_key = f"{image_name1}_{image_name2}"
                 image_tracks[track_key] = {image_name1, image_name2}
 
+    file.close()
+
     # Print tracks
     for track in image_tracks.values():
         print(track)
         #print("Track:", ", ".join(sorted(list(track))))
+
+
 
     return image_tracks
     # TODO if tracks are empty use DISK!
