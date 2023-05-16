@@ -163,7 +163,7 @@ def split_images(input_dir, output_dir, size_x=1600, size_y=1600):
 
                 current_tile = img[y_start:y_end, x_start:x_end]
 
-                filepath = os.path.join(output_dir, f'{image_name}_ystart{y_start}_ystartxstart{x_start}.jpg')
+                filepath = os.path.join(output_dir, f'{image_name}_ystart{y_start}_ystartxstart{x_start}_xstart.jpg')
 
                 cv2.imwrite(filepath, current_tile)
 

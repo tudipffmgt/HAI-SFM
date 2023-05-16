@@ -1,7 +1,7 @@
 import os
 
 from image_processing import downsample_images, rotate_images, split_images
-from generate_image_pairs import get_image_pairs, get_image_tracks
+from generate_image_pairs import get_image_pairs, get_image_tracks, get_image_pairs_tiles
 from feature_matching import sg_feature_matching #, disk_feature_matching
 
 
@@ -40,10 +40,12 @@ def main():
     # disk_path = 'disk'
     # disk_feature_matching(input_dir, disk_path, output_dir_disk)
 
-    downsample_factor, ext = downsample_images(input_dir, output_dir_downsampled, image_list)
-    image_tracks = get_image_tracks(input_dir, output_dir_superglue, downsample_factor)
+    # EXPERIMENTS tba
+    #downsample_factor, ext = downsample_images(input_dir, output_dir_downsampled, image_list)
+    #image_tracks = get_image_tracks(input_dir, output_dir_superglue, downsample_factor)
 
-    split_images(input_dir, output_dir_split)
+    #split_images(input_dir, output_dir_split)
+    get_image_pairs_tiles()
 
     # while True:
     #
