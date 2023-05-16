@@ -1,16 +1,13 @@
 import os
 import cv2
 import sys
+import math
 
 
 def downsample_images(input_dir, output_dir, image_list):
 
     if not image_list:
         print('No image list was initialized. Processing all images...')
-
-        # Create the output directory if it doesn't exist.
-        if not os.path.exists(output_dir):
-            os.makedirs(output_dir)
 
         # List all the image files in the data directory.
         image_files = [os.path.join(input_dir, f) for f in os.listdir(input_dir)
@@ -69,7 +66,7 @@ def downsample_images(input_dir, output_dir, image_list):
             # Save the downscaled image to the output directory.
             cv2.imwrite(output_path, img)
 
-        return ext
+        return downsample_factor, ext
 
     else:
 
@@ -136,3 +133,37 @@ def rotate_images(input_dir, image_tracks, ext):
         modified_images.append(img_path)
 
     return modified_images
+
+
+def split_images(input_dir, output_dir, size_x=1600, size_y=1600):
+
+    # List all the image files in the data directory.
+    image_files = [os.path.join(input_dir, f) for f in os.listdir(input_dir)
+                   if f.endswith('.jpg') or f.endswith('.png') or f.endswith('.tif')]
+
+    # Process each image file.
+    for image_path in image_files:
+        # Downsample the image.
+        print(f'Splitting {image_path}...')
+
+        img = cv2.imread(image_path)
+
+        num_tiles_x = math.ceil(img.shape[1] / size_x)
+        num_tiles_y = math.ceil(img.shape[0] / size_y)
+
+        image_name = os.path.splitext(os.path.basename(image_path))[0]
+
+        for rows in range(num_tiles_y):
+            y_start = rows * size_y
+            y_end = min((rows + 1) * size_y, img.shape[0])
+
+            for cols in range(num_tiles_x):
+                x_start = cols * size_x
+                x_end = min((cols + 1) * size_x, img.shape[1])
+
+                current_tile = img[y_start:y_end, x_start:x_end]
+
+                filepath = os.path.join(output_dir, f'{image_name}_ystart{y_start}_ystartxstart{x_start}.jpg')
+
+                cv2.imwrite(filepath, current_tile)
+
