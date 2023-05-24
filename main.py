@@ -44,8 +44,8 @@ def main():
     #downsample_factor, ext = downsample_images(input_dir, output_dir_downsampled, image_list)
     #image_tracks = get_image_tracks(input_dir, output_dir_superglue, downsample_factor)
 
-    #split_images(input_dir, output_dir_split)
-    get_image_pairs_tiles()
+    split_images(input_dir, output_dir_split)
+    #get_image_pairs_tiles()
 
     # while True:
     #

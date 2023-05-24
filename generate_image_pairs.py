@@ -55,20 +55,20 @@ def get_image_pairs(input_dir, output_dir, ordered=True, along_track_overlap=0.6
 
 def get_image_pairs_tiles():
     # TODO Continue here!!
+
+    # Idea is to store only the names of matching bounding boxes in the match_pair_file
     input_file = os.path.join('data', 'matches_bounding_boxes.txt')
 
     with open(input_file, 'r') as f:
         for line in f:
             line = line.strip()
             if line:
-                parts = line.split(',')
+                parts = line.split('\t')
                 img1_path = parts[0].strip()
                 img2_path = parts[1].strip()
                 bbox1 = eval(parts[2].strip())
                 bbox2 = eval(parts[3].strip())
                 match = (img1_path, img2_path, bbox1, bbox2)
-                print(match)
-                #matches.append(match)
 
 
 
@@ -121,7 +121,7 @@ def get_image_tracks(input_dir_data, input_dir_superglue, downsample_factor, con
 
             # Print the extracted keypoints and matches
             print(f'{image_names[0]}, {image_names[1]}, {b1}, {b2}')
-            file.write(f'{image_names[0]}, {image_names[1]}, {b1}, {b2}\n')
+            file.write(f'{image_names[0]} \t {image_names[1]} \t {b1} \t {b2}\n')
 
             image_name1 = image_names[0] + ".jpg"
             image_name2 = image_names[1] + ".jpg"
