@@ -2,6 +2,15 @@ import os
 import cv2
 import sys
 import math
+import itertools
+
+
+def boundingbox_intersects(bbox1, bbox2):
+    x1, y1 = bbox1[0]
+    x2, y2 = bbox1[1]
+    x3, y3 = bbox2[0]
+    x4, y4 = bbox2[1]
+    return not (x2 < x3 or x4 < x1 or y2 < y3 or y4 < y1)
 
 
 def downsample_images(input_dir, output_dir, image_list):
@@ -141,6 +150,26 @@ def split_images(input_dir, output_dir, size_x=1600, size_y=1600):
     image_files = [os.path.join(input_dir, f) for f in os.listdir(input_dir)
                    if f.endswith('.jpg') or f.endswith('.png') or f.endswith('.tif')]
 
+    # Idea is to store only the names of matching bounding boxes in the match_pair_file
+    input_file = os.path.join('data', 'matches_bounding_boxes.txt')
+
+    # Create an empty list to store the bounding box data
+    pairs_bounding_boxes = []
+
+    # Create an empty dictionary to store the image names
+    selected_tile_images = {}
+
+    with open(input_file, 'r') as f:
+        for line in f:
+            line = line.strip()
+            if line:
+                parts = line.split('\t')
+                img1_path = parts[0].strip()
+                img2_path = parts[1].strip()
+                bbox1 = eval(parts[2].strip())
+                bbox2 = eval(parts[3].strip())
+                pairs_bounding_boxes.append([img1_path, img2_path, bbox1, bbox2])
+
     # Process each image file.
     for image_path in image_files:
         # Downsample the image.
@@ -167,3 +196,24 @@ def split_images(input_dir, output_dir, size_x=1600, size_y=1600):
 
                 cv2.imwrite(filepath, current_tile)
 
+                # New code for comparing tile with bounding boxes
+                for pairs in pairs_bounding_boxes:
+                    if image_name == pairs[0] and boundingbox_intersects(pairs[2], [(x_start, y_start), (x_end, y_end)]):
+                        key = f'{pairs[0]}_{pairs[1]}'
+                        value = f'{image_name}_ystart{y_start}_ystartxstart{x_start}_xstart.jpg'
+                        selected_tile_images.setdefault(key, []).append(value)
+                    if image_name == pairs[1] and boundingbox_intersects(pairs[3], [(x_start, y_start), (x_end, y_end)]):
+                        key = f'{pairs[0]}_{pairs[1]}'
+                        value = f'{image_name}_ystart{y_start}_ystartxstart{x_start}_xstart.jpg'
+                        selected_tile_images.setdefault(key, []).append(value)
+
+    output_file = os.path.join(output_dir, f'matched_pairs.txt')
+
+    with open(output_file, 'w') as f:
+        for key, value in selected_tile_images.items():
+            combinations = itertools.combinations(value, 2)
+            for combination in combinations:
+                image_name_1 = combination[0].split('_')[0]
+                image_name_2 = combination[1].split('_')[0]
+                if image_name_1 != image_name_2:
+                    f.write(f'{combination[0]} {combination[1]}\n')
