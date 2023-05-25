@@ -53,24 +53,6 @@ def get_image_pairs(input_dir, output_dir, ordered=True, along_track_overlap=0.6
 
     return matched_pairs_file
 
-def get_image_pairs_tiles():
-    # TODO Continue here!!
-
-    # Idea is to store only the names of matching bounding boxes in the match_pair_file
-    input_file = os.path.join('data', 'matches_bounding_boxes.txt')
-
-    with open(input_file, 'r') as f:
-        for line in f:
-            line = line.strip()
-            if line:
-                parts = line.split('\t')
-                img1_path = parts[0].strip()
-                img2_path = parts[1].strip()
-                bbox1 = eval(parts[2].strip())
-                bbox2 = eval(parts[3].strip())
-                match = (img1_path, img2_path, bbox1, bbox2)
-
-
 
 def get_image_tracks(input_dir_data, input_dir_superglue, downsample_factor, confidence_threshold=0.5, matches_threshold=40):
 
@@ -79,7 +61,7 @@ def get_image_tracks(input_dir_data, input_dir_superglue, downsample_factor, con
 
     # Check if files were found
     if len(npz_files) > 0:
-        print(f'Found {len(npz_files)} image files in {input_dir_superglue}.')
+        print(f'Found {len(npz_files)} npz files in {input_dir_superglue}.')
     else:
         print(f'No npz files found in {input_dir_superglue}.')
 
@@ -143,6 +125,7 @@ def get_image_tracks(input_dir_data, input_dir_superglue, downsample_factor, con
     file.close()
 
     # Print tracks
+    print(f'Found the following image tracks:')
     for track in image_tracks.values():
         print(track)
         #print("Track:", ", ".join(sorted(list(track))))
