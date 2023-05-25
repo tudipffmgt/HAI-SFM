@@ -159,6 +159,7 @@ def split_images(input_dir, output_dir, size_x=1600, size_y=1600):
     # Create an empty dictionary to store the image names
     selected_tile_images = {}
 
+    # Read the matching bounding boxes from the input file
     with open(input_file, 'r') as f:
         for line in f:
             line = line.strip()
@@ -196,7 +197,7 @@ def split_images(input_dir, output_dir, size_x=1600, size_y=1600):
 
                 cv2.imwrite(filepath, current_tile)
 
-                # New code for comparing tile with bounding boxes
+                # Compare the tile with bounding boxes
                 for pairs in pairs_bounding_boxes:
                     if image_name == pairs[0] and boundingbox_intersects(pairs[2], [(x_start, y_start), (x_end, y_end)]):
                         key = f'{pairs[0]}_{pairs[1]}'
