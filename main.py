@@ -1,17 +1,19 @@
 import os
 import argparse
 import sys
+import h5py
 from pathlib import Path
 
 from image_processing import downsample_images, rotate_images, split_images
 from generate_image_pairs import get_image_pairs, get_image_tracks
-from feature_matching import sg_feature_matching #, disk_feature_matching
+from feature_matching import sg_feature_matching, merge_npz_files #, disk_feature_matching
 
 
 def retrieve_image_orientation(input_dir, num_flightstrips):
 
     iteration = 0
     max_iterations = num_flightstrips
+    image_list = []
 
     num_files = len((os.listdir(input_dir)))
 
@@ -47,7 +49,7 @@ def retrieve_image_orientation(input_dir, num_flightstrips):
         sg_feature_matching(output_dir_downsampled, superglue_path, image_pairs, setting, output_dir_superglue)
 
         # Part 4: Find feature tracks and check the length
-        image_tracks = get_image_tracks(output_dir_superglue)
+        image_tracks = get_image_tracks(input_dir, output_dir_superglue, downsample_factor)
         if len(image_tracks) == 1 and len(list(image_tracks.values())[0]) == num_files:
             # print('Found the correct image orientation for all images. Proceeding with tile-based SuperGlue.')
             print('Found the correct image orientation for all images. Proceeding with DISK.')
@@ -69,6 +71,8 @@ def tile_based_approach(input_dir, image_list=[]):
     output_dir_superglue = 'superglue-results'
     output_dir_split = 'split'
 
+    superglue_path = 'SuperGluePretrainedNetwork/match_pairs.py'
+
     # Create the output directory if it doesn't exist.
     if not os.path.exists(output_dir_downsampled):
         os.makedirs(output_dir_downsampled)
@@ -82,7 +86,10 @@ def tile_based_approach(input_dir, image_list=[]):
     downsample_factor, ext = downsample_images(input_dir, output_dir_downsampled, image_list)
     image_tracks = get_image_tracks(input_dir, output_dir_superglue, downsample_factor)
 
-    split_images(input_dir, output_dir_split)
+    image_pairs = split_images(input_dir, output_dir_split)
+
+    setting = 'outdoor'
+    sg_feature_matching(output_dir_split, superglue_path, image_pairs, setting, output_dir_superglue)
 
 
 def main(parameters):
@@ -138,6 +145,55 @@ def main(parameters):
 
             # TODO Run DISK feature matching
             # disk_feature_matching()
+
+    elif parameters['config'] == 'tests':
+
+        # Read h5 DISK files to learn about the structure
+        file = h5py.File('example_h5/matches.h5', 'r')
+        groups = list(file.keys())
+
+        print(groups)
+        #Iterate over the groups
+        for group_name in groups:
+             group = file[group_name]
+             print(group)
+             for element in group:
+                 print(element)
+                 test = file[group_name][element]
+                 print(test)
+                 print(test[0])
+                 print(test[1])
+
+           # print(group[0])
+
+
+
+        # Iterate over all files in the superglue directory
+        sg_dir = 'superglue-results'
+        merge_npz_files(sg_dir)
+
+        #print('Reading h5 file!')
+        #file = h5py.File('h5/keypoints.h5', 'r')
+        #groups = list(file.keys())
+
+        file = h5py.File('h5/matches.h5', 'r')
+        groups = list(file.keys())
+
+        print(groups)
+        # Iterate over the groups
+        for group_name in groups:
+             group = file[group_name]
+             #print(group[0])
+             print(group)
+             for element in group:
+                 print(element)
+                 test = file[group_name][element]
+                 print(test)
+                 print(test[0])
+
+
+
+
     else:
         print('Invalid value for the configuration')
 
@@ -146,16 +202,16 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser()
 
     parser.add_argument('--image_dir', type=Path, required=True, help="Path to original images in .jpg, .png, or .tif.")
-    parser.add_argument('--config', type=str, choices=['default', 't-ba', 'disk'], default='default')
+    parser.add_argument('--config', type=str, choices=['default', 't-ba', 'disk', 'tests'], default='default')
     parser.add_argument('--rotation', type=str, choices=['rotated', 'not-rotated'], default='not-rotated',
                         help='Specify if the images are already rotated to be usable for learned matchers.')
     parser.add_argument('--flightstrips', type=int, default=10, help='Number of flightstrips if known. '
                                                                      'If not known the parameter is set to 10.')
-
+    # TODO Path to DISK/SuperGlue
     args = parser.parse_args()
 
-    parameters = vars(args)
+    args = vars(args)
 
-    main(parameters)
+    main(args)
 
 
