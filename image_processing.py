@@ -193,7 +193,7 @@ def split_images(input_dir, output_dir, size_x=1600, size_y=1600):
 
                 current_tile = img[y_start:y_end, x_start:x_end]
 
-                filepath = os.path.join(output_dir, f'{image_name}_ystart{y_start}_ystartxstart{x_start}_xstart.jpg')
+                filepath = os.path.join(output_dir, f'{image_name}_y{y_start}y~x{x_start}x.jpg')
 
                 cv2.imwrite(filepath, current_tile)
 
@@ -201,11 +201,11 @@ def split_images(input_dir, output_dir, size_x=1600, size_y=1600):
                 for pairs in pairs_bounding_boxes:
                     if image_name == pairs[0] and boundingbox_intersects(pairs[2], [(x_start, y_start), (x_end, y_end)]):
                         key = f'{pairs[0]}_{pairs[1]}'
-                        value = f'{image_name}_ystart{y_start}_ystartxstart{x_start}_xstart.jpg'
+                        value = f'{image_name}_y{y_start}y~x{x_start}x.jpg'
                         selected_tile_images.setdefault(key, []).append(value)
                     if image_name == pairs[1] and boundingbox_intersects(pairs[3], [(x_start, y_start), (x_end, y_end)]):
                         key = f'{pairs[0]}_{pairs[1]}'
-                        value = f'{image_name}_ystart{y_start}_ystartxstart{x_start}_xstart.jpg'
+                        value = f'{image_name}_y{y_start}y~x{x_start}x.jpg'
                         selected_tile_images.setdefault(key, []).append(value)
 
     output_file = os.path.join(output_dir, f'matched_pairs.txt')
@@ -218,3 +218,5 @@ def split_images(input_dir, output_dir, size_x=1600, size_y=1600):
                 image_name_2 = combination[1].split('_')[0]
                 if image_name_1 != image_name_2:
                     f.write(f'{combination[0]} {combination[1]}\n')
+
+    return output_file

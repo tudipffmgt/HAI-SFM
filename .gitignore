@@ -1,3 +1,4 @@
 data/*.tif
 downsampled/*.jpg
 superglue/*.jpg
+./virtual_env

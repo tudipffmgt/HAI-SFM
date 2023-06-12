@@ -130,7 +130,4 @@ def get_image_tracks(input_dir_data, input_dir_superglue, downsample_factor, con
         print(track)
         #print("Track:", ", ".join(sorted(list(track))))
 
-
-
     return image_tracks
-    # TODO if tracks are empty use DISK!
