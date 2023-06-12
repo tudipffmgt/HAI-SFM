@@ -6,7 +6,7 @@ from pathlib import Path
 
 from image_processing import downsample_images, rotate_images, split_images
 from generate_image_pairs import get_image_pairs, get_image_tracks
-from feature_matching import sg_feature_matching, merge_npz_files #, disk_feature_matching
+from feature_matching import sg_feature_matching, merge_npz_files ,disk_feature_matching
 
 
 def retrieve_image_orientation(input_dir, num_flightstrips):
@@ -149,20 +149,20 @@ def main(parameters):
     elif parameters['config'] == 'tests':
 
         # Read h5 DISK files to learn about the structure
-        file = h5py.File('example_h5/matches.h5', 'r')
-        groups = list(file.keys())
-
-        print(groups)
-        #Iterate over the groups
-        for group_name in groups:
-             group = file[group_name]
-             print(group)
-             for element in group:
-                 print(element)
-                 test = file[group_name][element]
-                 print(test)
-                 print(test[0])
-                 print(test[1])
+        # file = h5py.File('example_h5/matches.h5', 'r')
+        # groups = list(file.keys())
+        #
+        # print(groups)
+        # #Iterate over the groups
+        # for group_name in groups:
+        #      group = file[group_name]
+        #      print(group)
+        #      for element in group:
+        #          print(element)
+        #          test = file[group_name][element]
+        #          print(test)
+        #          print(test[0])
+        #          print(test[1])
 
            # print(group[0])
 
@@ -173,14 +173,20 @@ def main(parameters):
         merge_npz_files(sg_dir)
 
         #print('Reading h5 file!')
-        #file = h5py.File('h5/keypoints.h5', 'r')
-        #groups = list(file.keys())
-
-        file = h5py.File('h5/matches.h5', 'r')
+        file = h5py.File('h5/keypoints.h5', 'r')
         groups = list(file.keys())
 
         print(groups)
-        # Iterate over the groups
+        for group_name in groups:
+            group = file[group_name]
+            print(len(group))
+            print(group[0])
+
+        file = h5py.File('h5/matches.h5', 'r')
+        groups = list(file.keys())
+        #
+        print(groups)
+        # # Iterate over the groups
         for group_name in groups:
              group = file[group_name]
              #print(group[0])
@@ -190,6 +196,7 @@ def main(parameters):
                  test = file[group_name][element]
                  print(test)
                  print(test[0])
+                 print(test[1])
 
 
 
