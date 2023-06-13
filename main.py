@@ -1,7 +1,7 @@
 import os
 import argparse
 import sys
-import h5py
+import torch
 from pathlib import Path
 
 from image_processing import downsample_images, rotate_images, split_images
@@ -92,7 +92,26 @@ def tile_based_approach(input_dir, image_list=[]):
     sg_feature_matching(output_dir_split, superglue_path, image_pairs, setting, output_dir_superglue)
 
 
+def check_device(parameters):
+    # Check if GPU is enabled
+    if parameters['gpu']:
+        if torch.cuda.is_available():
+            # Set the device for PyTorch
+            device = torch.device(parameters['gpu_device'])
+            torch.cuda.set_device(device)
+            print('Using GPU device ' + parameters['gpu_device'])
+        else:
+            print('GPU is not available. Switching to CPU.')
+            device = torch.device('cpu')
+    else:
+        # Use CPU
+        device = torch.device('cpu')
+        print('Using CPU. Attention: Feature matching might be slow on CPU!')
+
+
 def main(parameters):
+
+    check_device(parameters)
 
     input_dir = parameters['image_dir']
     if not input_dir.exists():
@@ -106,8 +125,8 @@ def main(parameters):
             num_flightstrips = parameters['flightstrips']
             retrieve_image_orientation(input_dir, num_flightstrips)
 
-            # TODO Run DISK feature matching
-            # disk_feature_matching()
+            #TODO Run DISK feature matching
+            disk_feature_matching(input_dir, )
 
         elif parameters['rotation'] == 'rotated':
             print('Running with default configuration using a combination of SuperGlue and DISK. '
@@ -147,76 +166,24 @@ def main(parameters):
             # disk_feature_matching()
 
     elif parameters['config'] == 'tests':
-
-        # Read h5 DISK files to learn about the structure
-        # file = h5py.File('example_h5/matches.h5', 'r')
-        # groups = list(file.keys())
-        #
-        # print(groups)
-        # #Iterate over the groups
-        # for group_name in groups:
-        #      group = file[group_name]
-        #      print(group)
-        #      for element in group:
-        #          print(element)
-        #          test = file[group_name][element]
-        #          print(test)
-        #          print(test[0])
-        #          print(test[1])
-
-           # print(group[0])
-
-
-
-        # Iterate over all files in the superglue directory
-        sg_dir = 'superglue-results'
-        merge_npz_files(sg_dir)
-
-        #print('Reading h5 file!')
-        file = h5py.File('h5/keypoints.h5', 'r')
-        groups = list(file.keys())
-
-        print(groups)
-        for group_name in groups:
-            group = file[group_name]
-            print(len(group))
-            print(group[0])
-
-        file = h5py.File('h5/matches.h5', 'r')
-        groups = list(file.keys())
-        #
-        print(groups)
-        # # Iterate over the groups
-        for group_name in groups:
-             group = file[group_name]
-             #print(group[0])
-             print(group)
-             for element in group:
-                 print(element)
-                 test = file[group_name][element]
-                 print(test)
-                 print(test[0])
-                 print(test[1])
-
-
-
-
-    else:
-        print('Invalid value for the configuration')
+        print('testing')
 
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
 
+    parser.add_argument('--gpu', action='store_true', help='Enable GPU usage')
+    parser.add_argument('--gpu_device', type=int, default=0, help='Specify the GPU device index')
     parser.add_argument('--image_dir', type=Path, required=True, help="Path to original images in .jpg, .png, or .tif.")
+    parser.add_argument('--superglue_path', type=Path, required=True, help="Path to SuperGlue")
+    parser.add_argument('--disk_path', type=Path, required=True, help="Path to DISK")
     parser.add_argument('--config', type=str, choices=['default', 't-ba', 'disk', 'tests'], default='default')
     parser.add_argument('--rotation', type=str, choices=['rotated', 'not-rotated'], default='not-rotated',
                         help='Specify if the images are already rotated to be usable for learned matchers.')
     parser.add_argument('--flightstrips', type=int, default=10, help='Number of flightstrips if known. '
                                                                      'If not known the parameter is set to 10.')
-    # TODO Path to DISK/SuperGlue
-    args = parser.parse_args()
 
+    args = parser.parse_args()
     args = vars(args)
 
     main(args)

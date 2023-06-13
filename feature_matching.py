@@ -35,7 +35,7 @@ def disk_feature_matching(input_dir, disk_path, output_dir):
 
     disk_feature_detection = os.path.join(disk_path, 'detect.py')
 
-    cmd = f'python {disk_feature_detection} {output_dir} {input_dir}'
+    cmd = f'python {disk_feature_detection} {output_dir} {input_dir} '
 
     print(f'Running DISK on {input_dir}')
     subprocess.run(cmd.split())
@@ -97,7 +97,6 @@ def merge_npz_files(input_dir):
                 keypoints1 = npz['keypoints1'][keypoints1_indices]
                 keypoints1 = keypoints1 + np.array([img2_xshift, img2_yshift])
 
-
                 if img1 not in keypoints_dict:
                     keypoints_dict[img1] = keypoints0
                     img1_indices = range(len(keypoints0))
@@ -114,7 +113,6 @@ def merge_npz_files(input_dir):
                     keypoints_dict[img2] = np.concatenate([keypoints_dict[img2], keypoints1], axis=0)
                     img2_indices = range(prev_len, prev_len + len(keypoints1))
 
-
                 # Write to keypoints.h5
                 if img1 in keypoint_file:
                     keypoint_file[img1].resize((keypoint_file[img1].shape[0] + len(img1_indices)), axis=0)
@@ -129,7 +127,6 @@ def merge_npz_files(input_dir):
                 else:
                     keypoint_file.create_dataset(img2, data=keypoints_dict[img2][img2_indices], chunks=True,
                                                  maxshape=(None, 2))
-
                 # Write to matches.h5
                 group_name = f'/{img1}'
                 if group_name in matches_file:
@@ -145,92 +142,6 @@ def merge_npz_files(input_dir):
                 else:
                     dataset = group.create_dataset(dataset_name, data=np.vstack([img1_indices, img2_indices]),
                                                    chunks=True, maxshape=(2, None))
-
-            # Working code for dictionaries: Store keypoints in the first dictionary with unique identifier as img1 or img2
-            # if img1 not in keypoints_dict:
-            #     keypoints_dict[img1] = keypoints0
-            #     img1_indices = range(len(keypoints0))
-            # else:
-            #     prev_len = len(keypoints_dict[img1])
-            #     keypoints_dict[img1] = np.concatenate([keypoints_dict[img1], keypoints0], axis=0)
-            #     img1_indices = range(prev_len, prev_len + len(keypoints0))
-            #
-            # if img2 not in keypoints_dict:
-            #     keypoints_dict[img2] = keypoints1
-            #     img2_indices = range(len(keypoints1))
-            # else:
-            #     prev_len = len(keypoints_dict[img2])
-            #     keypoints_dict[img2] = np.concatenate([keypoints_dict[img2], keypoints1], axis=0)
-            #     img2_indices = range(prev_len, prev_len + len(keypoints1))
-
-
-
-
-
-
-
-    ## Old version
-    # with h5py.File(kp_file_path, 'a') as keypoint_file, h5py.File(matches_file_path, 'a') as matches_file:
-    #     for npz_file in npz_files:
-    #
-    #         npz = np.load(npz_file)
-    #         matches = npz['matches']
-    #         matching_indices = np.where(matches > -1)[0]
-    #
-    #         if matching_indices.size > 0:
-    #
-    #             # Extract the original file names by using regular expressions
-    #             filename = os.path.split(npz_file)[1]
-    #             # Extract the original image names using regular expressions
-    #             img1_match = re.search(r'(.+?)_', filename)
-    #             img1 = img1_match.group(1)
-    #             img2_match = re.search(r'x_(.*?)_y', filename)
-    #             img2 = img2_match.group(1)
-    #
-    #             # Extract the x-shift and y-shift values for each tile-image
-    #             shift_values = re.findall(r'_y(\d+)y~x(\d+)x', filename)
-    #             img1_yshift, img1_xshift = map(int, shift_values[0])
-    #             img2_yshift, img2_xshift = map(int, shift_values[1])
-    #
-    #             # Extract only matched keypoints and apply the shift
-    #             keypoints0 = npz['keypoints0'][matching_indices]
-    #             keypoints0 = keypoints0 + np.array([img1_xshift, img1_yshift])
-    #
-    #             keypoints1_indices = matches[matching_indices]
-    #             keypoints1 = npz['keypoints1'][keypoints1_indices]
-    #             keypoints1 = keypoints1 + np.array([img2_xshift, img2_yshift])
-    #
-    #             # Write to keypoints.h5
-    #             if img1 in keypoint_file:
-    #                 keypoint_file[img1].resize((keypoint_file[img1].shape[0] + keypoints0.shape[0]), axis=0)
-    #                 keypoint_file[img1][-keypoints0.shape[0]:] = keypoints0
-    #             else:
-    #                 keypoint_file.create_dataset(img1, data=keypoints0, chunks=True, maxshape=(None, 2))
-    #
-    #             if img2 in keypoint_file:
-    #                 keypoint_file[img2].resize((keypoint_file[img2].shape[0] + keypoints1.shape[0]), axis=0)
-    #                 keypoint_file[img2][-keypoints1.shape[0]:] = keypoints1
-    #             else:
-    #                 keypoint_file.create_dataset(img2, data=keypoints1, chunks=True, maxshape=(None, 2))
-    #
-    #             # Write to matches.h5
-    #             # TODO fix order and size
-    #             group_name = f'/{img1}'
-    #             if group_name in matches_file:
-    #                 group = matches_file[group_name]
-    #             else:
-    #                 group = matches_file.create_group(group_name)
-    #
-    #             dataset_name = f'{img2}'
-    #             if dataset_name in group:
-    #                 dataset = group[dataset_name]
-    #                 dataset.resize((2, dataset.shape[1] + keypoints0.shape[0]))
-    #                 dataset[:, -keypoints0.shape[0]:] = np.vstack(
-    #                     [np.arange(dataset.shape[1], dataset.shape[1] + keypoints0.shape[0])] * 2)
-    #             else:
-    #                 dataset = group.create_dataset(dataset_name, data=np.vstack([np.arange(keypoints0.shape[0])] * 2),
-    #                                                chunks=True, maxshape=(2, None))
-
 
 
 
