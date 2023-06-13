@@ -40,7 +40,6 @@ def get_image_pairs(input_dir, output_dir, ordered=True, along_track_overlap=0.6
                 else:
                     break
 
-        # TODO cross_track_overlap
     else:
         print('Assuming that the images in the directory are' + '\033[33m' + ' not ordered. ' + '\033[0m' +
               'Write an exhaustive matching file.')
