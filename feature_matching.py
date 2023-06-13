@@ -4,6 +4,9 @@ import numpy as np
 import re
 import h5py
 
+from image_processing import downsample_images, split_images, rotate_images
+from generate_image_pairs import get_image_pairs, get_image_tracks
+
 
 def sg_feature_matching(input_dir, superglue_path, image_pairs, setting, output_dir):
     # List all the downsampled image files in the output directory.
@@ -21,7 +24,6 @@ def sg_feature_matching(input_dir, superglue_path, image_pairs, setting, output_
         os.remove(os.path.join(output_dir, file))
 
     # Run SuperGlue feature matching on each pair of consecutive images.
-    # out_file = os.path.join(output_dir, f'{os.path.basename(img1)[:-4]}_{os.path.basename(img2)[:-4]}.h5')
     cmd = f'python {superglue_path} --input_dir {input_dir} --input_pairs {image_pairs} --superglue {setting} ' \
           f'--output_dir {output_dir} --max_keypoints {1024} --resize {-1}'
 
@@ -31,16 +33,99 @@ def sg_feature_matching(input_dir, superglue_path, image_pairs, setting, output_
     print('SuperGlue feature matching completed.')
 
 
-def disk_feature_matching(input_dir, disk_path, output_dir):
+def retrieve_image_orientation(input_dir, superglue_path, num_flightstrips):
+
+    iteration = 0
+    max_iterations = num_flightstrips
+    image_list = []
+
+    num_files = len((os.listdir(input_dir)))
+
+    output_dir_downsampled = 'output/downsampled'
+    output_dir_superglue = 'output/superglue-results'
+
+    # Create the output directory if it doesn't exist.
+    if not os.path.exists(output_dir_downsampled):
+        os.makedirs(output_dir_downsampled)
+
+    if not os.path.exists(output_dir_superglue):
+        os.makedirs(output_dir_superglue)
+
+    while True:
+
+        iteration += 1
+        if iteration > max_iterations:
+            print('Maximum number of iterations reached. '
+                  'Could not find the correct orientation of all images using SuperGlue.')
+            break
+        # Part 1: Downsampling and retrieve original extension
+        downsample_factor, ext = downsample_images(input_dir, output_dir_downsampled, image_list)
+
+        # Part 2: Get image pairs
+        image_pairs = get_image_pairs(output_dir_downsampled, output_dir_downsampled)
+
+        # Part 3: SuperGlue matching
+        # Define the path to the SuperGlue repository.
+        superglue_path = os.path.join(superglue_path, 'match_pairs.py')
+
+        # Perform SuperGlue feature matching on all image pairs.
+        setting = 'outdoor'
+        sg_feature_matching(output_dir_downsampled, superglue_path, image_pairs, setting, output_dir_superglue)
+
+        # Part 4: Find feature tracks and check the length
+        image_tracks = get_image_tracks(input_dir, output_dir_superglue, downsample_factor)
+        if len(image_tracks) == 1 and len(list(image_tracks.values())[0]) == num_files:
+            # print('Found the correct image orientation for all images. Proceeding with tile-based SuperGlue.')
+            print('Found the correct image orientation for all images. Proceeding with DISK.')
+            break
+
+        # Part 5: Rotate images of the smallest separate track
+        modified_images = rotate_images(input_dir, image_tracks, ext)
+        if modified_images == image_list:
+            print('Rotating the same list of images around 180° - '
+                  'The correct rotation could not be found for all images.')
+            break
+        else:
+            image_list = modified_images
+
+
+def disk_feature_matching(input_dir, disk_path):
 
     disk_feature_detection = os.path.join(disk_path, 'detect.py')
+    output_dir = 'output/disk-results'
 
     cmd = f'python {disk_feature_detection} {output_dir} {input_dir} '
 
     print(f'Running DISK on {input_dir}')
     subprocess.run(cmd.split())
 
-    #print('DISK feature matching completed.')
+
+def tile_based_approach(input_dir, superglue_path, image_list=[]):
+
+    output_dir_downsampled = 'output/downsampled'
+    output_dir_superglue = 'output/superglue-results'
+    output_dir_split = 'output/split'
+
+    superglue_path = os.path.join(superglue_path, 'match_pairs.py')
+
+    # Create the output directory if it doesn't exist.
+    if not os.path.exists(output_dir_downsampled):
+        os.makedirs(output_dir_downsampled)
+
+    if not os.path.exists(output_dir_superglue):
+        os.makedirs(output_dir_superglue)
+
+    if not os.path.exists(output_dir_downsampled):
+        os.makedirs(output_dir_downsampled)
+
+    downsample_factor, ext = downsample_images(input_dir, output_dir_downsampled, image_list)
+    image_tracks = get_image_tracks(input_dir, output_dir_superglue, downsample_factor)
+
+    image_pairs = split_images(input_dir, output_dir_split)
+
+    setting = 'outdoor'
+    sg_feature_matching(output_dir_split, superglue_path, image_pairs, setting, output_dir_superglue)
+
 
 def merge_npz_files(input_dir):
     # List all npz files in the data directory.
@@ -54,8 +139,8 @@ def merge_npz_files(input_dir):
 
     print(f'Reading npz files.')
 
-    kp_file_path = 'h5/keypoints.h5'
-    matches_file_path = 'h5/matches.h5'
+    kp_file_path = 'output/h5/keypoints.h5'
+    matches_file_path = 'output/h5/matches.h5'
     # Check if keypoint/matches file exist and delete
     if os.path.isfile(kp_file_path):
         os.remove(kp_file_path)
