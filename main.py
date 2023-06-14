@@ -1,4 +1,3 @@
-import os
 import argparse
 import sys
 from pathlib import Path
@@ -68,8 +67,6 @@ def main(parameters):
 
             if parameters['colmap']:
                 h5_to_colmap(input_dir, disk_path)
-
-
 
     elif parameters['config'] == 'tests':
         print('testing')
