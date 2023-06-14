@@ -4,9 +4,8 @@ import sys
 from pathlib import Path
 
 from utils import check_device
-from feature_matching import retrieve_image_orientation, disk_feature_matching, tile_based_approach
+from feature_matching import retrieve_image_orientation, disk_feature_matching, tile_based_approach, h5_to_colmap
 
-#TODO check image extensions
 
 def main(parameters):
 
@@ -65,7 +64,12 @@ def main(parameters):
             print('Running the approach using exclusively DISK.'
                   'The images are already rotated for the use of learned methods.')
 
-            disk_feature_matching(input_dir, disk_path)
+            #disk_feature_matching(input_dir, disk_path)
+
+            if parameters['colmap']:
+                h5_to_colmap(input_dir, disk_path)
+
+
 
     elif parameters['config'] == 'tests':
         print('testing')
@@ -84,6 +88,7 @@ if __name__ == '__main__':
                         help='Specify if the images are already rotated to be usable for learned matchers.')
     parser.add_argument('--flightstrips', type=int, default=10, help='Number of flightstrips if known. '
                                                                      'If not known the parameter is set to 10.')
+    parser.add_argument('--colmap', action='store_true', help='Generate a COLMAP database from h5 files.')
 
     args = parser.parse_args()
     args = vars(args)

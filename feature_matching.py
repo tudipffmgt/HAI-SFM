@@ -91,16 +91,33 @@ def retrieve_image_orientation(input_dir, superglue_path, num_flightstrips):
 
 def disk_feature_matching(input_dir, disk_path):
 
-    disk_feature_detection = os.path.join(disk_path, 'detect.py')
+    # List all the image files in the data directory.
+    image_files = [os.path.join(input_dir, f) for f in os.listdir(input_dir)
+                   if f.endswith('.jpg') or f.endswith('.png') or f.endswith('.tif')]
+
+    #
+    _, ext = os.path.splitext(image_files[0])
+
+    disk_detection = os.path.join(disk_path, 'detect.py')
+    disk_matching = os.path.join(disk_path, 'match.py')
     output_dir = 'output/disk-results'
 
-    cmd = f'python {disk_feature_detection} {output_dir} {input_dir} '
+    cmd_detect = f'python {disk_detection} {output_dir} {input_dir} ' \
+                 f'--height 160 --width 160 --n 50 --image-extension {ext}'
 
-    print(f'Running DISK on {input_dir}')
-    subprocess.run(cmd.split())
+    print(f'Running DISK feature detection on {input_dir}')
+    subprocess.run(cmd_detect.split())
+
+    cmd_match = f'python {disk_matching} {output_dir} --rt 0.95'
+
+    print(f'Running DISK feature matching.')
+    subprocess.run(cmd_match.split())
 
 
-def tile_based_approach(input_dir, superglue_path, image_list=[]):
+def tile_based_approach(input_dir, superglue_path, image_list=None):
+
+    if image_list is None:
+        image_list = []
 
     output_dir_downsampled = 'output/downsampled'
     output_dir_superglue = 'output/superglue-results'
@@ -119,7 +136,7 @@ def tile_based_approach(input_dir, superglue_path, image_list=[]):
         os.makedirs(output_dir_downsampled)
 
     downsample_factor, ext = downsample_images(input_dir, output_dir_downsampled, image_list)
-    image_tracks = get_image_tracks(input_dir, output_dir_superglue, downsample_factor)
+    _ = get_image_tracks(input_dir, output_dir_superglue, downsample_factor)
 
     image_pairs = split_images(input_dir, output_dir_split)
 
@@ -149,9 +166,6 @@ def merge_npz_files(input_dir):
 
     # Dictionary to store keypoints with unique identifier as img1 or img2
     keypoints_dict = {}
-
-    # Dictionary to store indices of data filled in the keypoints_dict
-    matches_dict = {}
 
     with h5py.File(kp_file_path, 'a') as keypoint_file, h5py.File(matches_file_path, 'a') as matches_file:
         for npz_file in npz_files:
@@ -198,7 +212,7 @@ def merge_npz_files(input_dir):
                     keypoints_dict[img2] = np.concatenate([keypoints_dict[img2], keypoints1], axis=0)
                     img2_indices = range(prev_len, prev_len + len(keypoints1))
 
-                # Write to keypoints.h5
+                # Write to file keypoints.h5
                 if img1 in keypoint_file:
                     keypoint_file[img1].resize((keypoint_file[img1].shape[0] + len(img1_indices)), axis=0)
                     keypoint_file[img1][-len(img1_indices):] = keypoints_dict[img1][img1_indices]
@@ -212,7 +226,7 @@ def merge_npz_files(input_dir):
                 else:
                     keypoint_file.create_dataset(img2, data=keypoints_dict[img2][img2_indices], chunks=True,
                                                  maxshape=(None, 2))
-                # Write to matches.h5
+                # Write to file matches.h5
                 group_name = f'/{img1}'
                 if group_name in matches_file:
                     group = matches_file[group_name]
@@ -229,4 +243,21 @@ def merge_npz_files(input_dir):
                                                    chunks=True, maxshape=(2, None))
 
 
+def h5_to_colmap(input_dir, disk_path):
 
+    disk_to_colmap = os.path.join(disk_path, 'colmap/h5_to_db.py')
+
+    output_dir = 'output/colmap/database.db'
+
+    # List all the image files in the data directory.
+    image_files = [os.path.join(input_dir, f) for f in os.listdir(input_dir)
+                   if f.endswith('.jpg') or f.endswith('.png') or f.endswith('.tif')]
+
+    #
+    _, ext = os.path.splitext(image_files[0])
+
+    cmd_colmap = f'python {disk_to_colmap} --database-path {output_dir} output/h5 {input_dir} --single-camera ' \
+                 f'--image-extension {ext}'
+
+    print('Converting the h5 files to COLMAP database format.')
+    subprocess.run(cmd_colmap.split())
