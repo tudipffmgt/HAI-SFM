@@ -62,11 +62,11 @@ def retrieve_image_orientation(input_dir, superglue_path, num_flightstrips):
 
         # Part 3: SuperGlue matching
         # Define the path to the SuperGlue repository.
-        superglue_path = os.path.join(superglue_path, 'match_pairs.py')
+        superglue_match_pairs_path = os.path.join(superglue_path, 'match_pairs.py')
 
         # Perform SuperGlue feature matching on all image pairs.
         setting = 'outdoor'
-        sg_feature_matching(output_dir_downsampled, superglue_path, image_pairs, setting, output_dir_superglue)
+        sg_feature_matching(output_dir_downsampled, superglue_match_pairs_path, image_pairs, setting, output_dir_superglue)
 
         # Part 4: Find feature tracks and check the length
         image_tracks = get_image_tracks(input_dir, output_dir_superglue, downsample_factor)
@@ -96,7 +96,8 @@ def disk_feature_matching(input_dir, disk_path):
 
     disk_detection = os.path.join(disk_path, 'detect.py')
     disk_matching = os.path.join(disk_path, 'match.py')
-    output_dir = 'output/disk-results'
+    output_dir = 'output/h5'
+    check_output_dir(output_dir)
 
     cmd_detect = f'python {disk_detection} {output_dir} {input_dir} ' \
                  f'--height 160 --width 160 --n 50 --image-extension {ext}'
@@ -122,7 +123,7 @@ def tile_based_approach(input_dir, superglue_path, image_list=None):
     output_dir_split = 'output/split'
     check_output_dir(output_dir_split)
 
-    superglue_path = os.path.join(superglue_path, 'match_pairs.py')
+    superglue_match_pairs_path = os.path.join(superglue_path, 'match_pairs.py')
 
     downsample_factor, ext = downsample_images(input_dir, output_dir_downsampled, image_list)
     _ = get_image_tracks(input_dir, output_dir_superglue, downsample_factor)
@@ -130,7 +131,7 @@ def tile_based_approach(input_dir, superglue_path, image_list=None):
     image_pairs = split_images(input_dir, output_dir_split)
 
     setting = 'outdoor'
-    sg_feature_matching(output_dir_split, superglue_path, image_pairs, setting, output_dir_superglue)
+    sg_feature_matching(output_dir_split, superglue_match_pairs_path, image_pairs, setting, output_dir_superglue)
 
 
 def merge_npz_files(input_dir):

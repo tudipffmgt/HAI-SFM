@@ -108,7 +108,7 @@ def downsample_images(input_dir, output_dir, image_list):
             # Save the downscaled image to the output directory.
             cv2.imwrite(output_path, img)
 
-    return ext
+    return downsample_factor, ext
 
 
 def rotate_images(input_dir, image_tracks, ext):
