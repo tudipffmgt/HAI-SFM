@@ -6,6 +6,7 @@ import h5py
 
 from image_processing import downsample_images, split_images, rotate_images
 from generate_image_pairs import get_image_pairs, get_image_tracks
+from utils import check_output_dir
 
 
 def sg_feature_matching(input_dir, superglue_path, image_pairs, setting, output_dir):
@@ -42,14 +43,9 @@ def retrieve_image_orientation(input_dir, superglue_path, num_flightstrips):
     num_files = len((os.listdir(input_dir)))
 
     output_dir_downsampled = 'output/downsampled'
+    check_output_dir(output_dir_downsampled)
     output_dir_superglue = 'output/superglue-results'
-
-    # Create the output directory if it doesn't exist.
-    if not os.path.exists(output_dir_downsampled):
-        os.makedirs(output_dir_downsampled)
-
-    if not os.path.exists(output_dir_superglue):
-        os.makedirs(output_dir_superglue)
+    check_output_dir(output_dir_superglue)
 
     while True:
 
@@ -120,20 +116,13 @@ def tile_based_approach(input_dir, superglue_path, image_list=None):
         image_list = []
 
     output_dir_downsampled = 'output/downsampled'
+    check_output_dir(output_dir_downsampled)
     output_dir_superglue = 'output/superglue-results'
+    check_output_dir(output_dir_superglue)
     output_dir_split = 'output/split'
+    check_output_dir(output_dir_split)
 
     superglue_path = os.path.join(superglue_path, 'match_pairs.py')
-
-    # Create the output directory if it doesn't exist.
-    if not os.path.exists(output_dir_downsampled):
-        os.makedirs(output_dir_downsampled)
-
-    if not os.path.exists(output_dir_superglue):
-        os.makedirs(output_dir_superglue)
-
-    if not os.path.exists(output_dir_downsampled):
-        os.makedirs(output_dir_downsampled)
 
     downsample_factor, ext = downsample_images(input_dir, output_dir_downsampled, image_list)
     _ = get_image_tracks(input_dir, output_dir_superglue, downsample_factor)
@@ -155,6 +144,9 @@ def merge_npz_files(input_dir):
         print(f'No npz files found in {input_dir}.')
 
     print(f'Reading npz files.')
+
+    h5_file_path = 'output/h5'
+    check_output_dir(h5_file_path)
 
     kp_file_path = 'output/h5/keypoints.h5'
     matches_file_path = 'output/h5/matches.h5'
@@ -247,7 +239,10 @@ def h5_to_colmap(input_dir, disk_path):
 
     disk_to_colmap = os.path.join(disk_path, 'colmap/h5_to_db.py')
 
-    output_dir = 'output/colmap/database.db'
+    output_dir = 'output/colmap'
+    check_output_dir(output_dir)
+
+    output_file = 'output/colmap/database.db'
 
     # List all the image files in the data directory.
     image_files = [os.path.join(input_dir, f) for f in os.listdir(input_dir)
@@ -256,7 +251,7 @@ def h5_to_colmap(input_dir, disk_path):
     #
     _, ext = os.path.splitext(image_files[0])
 
-    cmd_colmap = f'python {disk_to_colmap} --database-path {output_dir} output/h5 {input_dir} --single-camera ' \
+    cmd_colmap = f'python {disk_to_colmap} --database-path {output_file} output/h5 {input_dir} --single-camera ' \
                  f'--image-extension {ext}'
 
     print('Converting the h5 files to COLMAP database format.')
