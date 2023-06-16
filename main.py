@@ -8,8 +8,10 @@ from feature_matching import retrieve_image_orientation, disk_feature_matching, 
 
 def main(parameters):
 
+    # Check CPU/GPU use
     check_device(parameters)
 
+    # Retrieve paths
     superglue_path = parameters['superglue_path']
     disk_path = parameters['disk_path']
 
@@ -17,6 +19,11 @@ def main(parameters):
     if not input_dir.exists():
         print('Error: The specified image directory does not exist.')
         sys.exit(1)
+
+    # Check if images are ordered and apply overlap
+    if parameters['ordered']:
+        images_in_order = True
+        along_track_overlap = parameters['along-track-overlap']
 
     # Default configuration
     if parameters['config'] == 'default':
@@ -77,6 +84,7 @@ def main(parameters):
             if parameters['colmap']:
                 h5_to_colmap(input_dir, disk_path)
 
+    # TODO remove
     elif parameters['config'] == 'tests':
         print('testing')
 
@@ -90,6 +98,11 @@ if __name__ == '__main__':
     parser.add_argument('--superglue_path', type=Path, required=True, help="Path to SuperGlue")
     parser.add_argument('--disk_path', type=Path, required=True, help="Path to DISK")
     parser.add_argument('--config', type=str, choices=['default', 't-ba', 'disk', 'tests'], default='default')
+    parser.add_argument('--ordered', action='store_true', help='The images in the data directory are already ordered '
+                                                          'according to the flight route')
+    parser.add_argument('--along-track-overlap', type=float, default=0.6, help='If the images are ordered the '
+                                                                               'along-track overlap can be specified '
+                                                                               'to reduce matching time')
     parser.add_argument('--rotation', type=str, choices=['rotated', 'not-rotated'], default='not-rotated',
                         help='Specify if the images are already rotated to be usable for learned matchers.')
     parser.add_argument('--flightstrips', type=int, default=10, help='Number of flightstrips if known. '
