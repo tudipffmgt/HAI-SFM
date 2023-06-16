@@ -15,6 +15,7 @@ def boundingbox_intersects(bbox1, bbox2):
 
 def downsample_images(input_dir, output_dir, image_list):
     output_str = ' Downsampling images '
+    print('\n')
     print(output_str.center(50, '#'))
 
     if not image_list:
@@ -115,6 +116,7 @@ def downsample_images(input_dir, output_dir, image_list):
 
 def rotate_images(input_dir, image_tracks, ext):
     output_str = ' Rotating images '
+    print('\n')
     print(output_str.center(50, '#'))
 
     # Find the smallest track
@@ -150,6 +152,7 @@ def rotate_images(input_dir, image_tracks, ext):
 
 def split_images(input_dir, output_dir, size_x=1600, size_y=1600):
     output_str = ' Splitting images '
+    print('\n')
     print(output_str.center(50, '#'))
 
     # List all the image files in the data directory.
