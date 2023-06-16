@@ -13,6 +13,7 @@ from utils import check_output_dir
 def sg_feature_matching(input_dir, superglue_path, image_pairs, setting, output_dir):
 
     output_str = ' SuperGlue feature matching '
+    print('\n')
     print(output_str.center(50, '#'))
 
     # List all the downsampled image files in the output directory.
@@ -40,11 +41,13 @@ def sg_feature_matching(input_dir, superglue_path, image_pairs, setting, output_
 
 def retrieve_image_orientation_disk(input_dir, disk_path, num_flightstrips):
     output_str = ' Retrieve image orientation with DISK '
+    print('\n')
     print(output_str.center(50, '#'))
 
 
 def retrieve_image_orientation(input_dir, superglue_path, num_flightstrips):
     output_str = ' Retrieve image orientation with SuperGlue '
+    print('\n')
     print(output_str.center(50, '#'))
 
     iteration = 0
@@ -98,6 +101,7 @@ def retrieve_image_orientation(input_dir, superglue_path, num_flightstrips):
 
 def disk_feature_matching(input_dir, disk_path):
     output_str = ' DISK feature matching '
+    print('\n')
     print(output_str.center(50, '#'))
 
     # List all the image files in the data directory.
@@ -113,7 +117,7 @@ def disk_feature_matching(input_dir, disk_path):
     check_output_dir(output_dir)
 
     cmd_detect = f'python {disk_detection} {output_dir} {input_dir} ' \
-                 f'--height 160 --width 160 --n 50 --image-extension {ext}'
+                 f'--height 3200 --width 3200 --n 32768 --image-extension {ext}'
 
     print(f'Running DISK feature detection on {input_dir}')
     subprocess.run(cmd_detect.split())
@@ -127,6 +131,7 @@ def disk_feature_matching(input_dir, disk_path):
 def tile_based_approach(input_dir, superglue_path, image_list=None):
 
     output_str = ' Tile-based approach '
+    print('\n')
     print(output_str.center(50, '#'))
 
     if image_list is None:
@@ -159,6 +164,10 @@ def tile_based_approach(input_dir, superglue_path, image_list=None):
 
 
 def merge_npz_files(input_dir):
+    output_str = ' Merge .npz to .h5 '
+    print('\n')
+    print(output_str.center(50, '#'))
+
     # List all npz files in the data directory.
     npz_files = [os.path.join(input_dir, f) for f in os.listdir(input_dir) if f.endswith('.npz')]
 
