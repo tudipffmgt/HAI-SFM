@@ -3,6 +3,7 @@ import subprocess
 import numpy as np
 import re
 import h5py
+from tqdm import tqdm
 
 from image_processing import downsample_images, split_images, rotate_images
 from generate_image_pairs import get_image_pairs, get_image_tracks
@@ -10,6 +11,10 @@ from utils import check_output_dir
 
 
 def sg_feature_matching(input_dir, superglue_path, image_pairs, setting, output_dir):
+
+    output_str = ' SuperGlue feature matching '
+    print(output_str.center(50, '#'))
+
     # List all the downsampled image files in the output directory.
     image_files = [os.path.join(input_dir, f) for f in os.listdir(input_dir) if f.endswith('.jpg')]
 
@@ -20,7 +25,6 @@ def sg_feature_matching(input_dir, superglue_path, image_pairs, setting, output_
         return
 
     # Clear the npz. files
-    # TODO Could keep pre-processed feature files
     for file in os.listdir(output_dir):
         os.remove(os.path.join(output_dir, file))
 
@@ -34,7 +38,14 @@ def sg_feature_matching(input_dir, superglue_path, image_pairs, setting, output_
     print('SuperGlue feature matching completed.')
 
 
+def retrieve_image_orientation_disk(input_dir, disk_path, num_flightstrips):
+    output_str = ' Retrieve image orientation with DISK '
+    print(output_str.center(50, '#'))
+
+
 def retrieve_image_orientation(input_dir, superglue_path, num_flightstrips):
+    output_str = ' Retrieve image orientation with SuperGlue '
+    print(output_str.center(50, '#'))
 
     iteration = 0
     max_iterations = num_flightstrips
@@ -86,6 +97,8 @@ def retrieve_image_orientation(input_dir, superglue_path, num_flightstrips):
 
 
 def disk_feature_matching(input_dir, disk_path):
+    output_str = ' DISK feature matching '
+    print(output_str.center(50, '#'))
 
     # List all the image files in the data directory.
     image_files = [os.path.join(input_dir, f) for f in os.listdir(input_dir)
@@ -113,6 +126,9 @@ def disk_feature_matching(input_dir, disk_path):
 
 def tile_based_approach(input_dir, superglue_path, image_list=None):
 
+    output_str = ' Tile-based approach '
+    print(output_str.center(50, '#'))
+
     if image_list is None:
         image_list = []
 
@@ -124,14 +140,22 @@ def tile_based_approach(input_dir, superglue_path, image_list=None):
     check_output_dir(output_dir_split)
 
     superglue_match_pairs_path = os.path.join(superglue_path, 'match_pairs.py')
+    setting = 'outdoor'
 
+    # SuperGlue feature matching on downsampled images
     downsample_factor, ext = downsample_images(input_dir, output_dir_downsampled, image_list)
+    image_pairs = get_image_pairs(output_dir_downsampled, output_dir_downsampled)
+    sg_feature_matching(output_dir_downsampled, superglue_match_pairs_path, image_pairs, setting, output_dir_superglue)
+
+    # Retrieve the bounding boxes for matching the split images
     _ = get_image_tracks(input_dir, output_dir_superglue, downsample_factor)
 
+    # Split images
     image_pairs = split_images(input_dir, output_dir_split)
 
-    setting = 'outdoor'
     sg_feature_matching(output_dir_split, superglue_match_pairs_path, image_pairs, setting, output_dir_superglue)
+
+    merge_npz_files(output_dir_superglue)
 
 
 def merge_npz_files(input_dir):
@@ -161,7 +185,7 @@ def merge_npz_files(input_dir):
     keypoints_dict = {}
 
     with h5py.File(kp_file_path, 'a') as keypoint_file, h5py.File(matches_file_path, 'a') as matches_file:
-        for npz_file in npz_files:
+        for npz_file in tqdm(npz_files):
 
             npz = np.load(npz_file)
             matches = npz['matches']

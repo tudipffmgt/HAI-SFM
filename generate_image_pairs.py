@@ -11,6 +11,9 @@ def bounding_box(points, upsample_factor=1):
 
 def get_image_pairs(input_dir, output_dir, ordered=True, along_track_overlap=0.6, cross_track_overlap=0.3):
 
+    output_str = ' Derive image pairs from overlap '
+    print(output_str.center(50, '#'))
+
     image_files = [os.path.join(input_dir, f) for f in os.listdir(input_dir) if f.endswith('.jpg')]
 
     # Create the matched_pairs file
@@ -54,6 +57,9 @@ def get_image_pairs(input_dir, output_dir, ordered=True, along_track_overlap=0.6
 
 
 def get_image_tracks(input_dir_data, input_dir_superglue, downsample_factor, confidence_threshold=0.5, matches_threshold=40):
+
+    output_str = ' Derive feature tracks '
+    print(output_str.center(50, '#'))
 
     # List all npz files in the data directory.
     npz_files = [os.path.join(input_dir_superglue, f) for f in os.listdir(input_dir_superglue) if f.endswith('.npz')]

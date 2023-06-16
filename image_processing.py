@@ -14,6 +14,8 @@ def boundingbox_intersects(bbox1, bbox2):
 
 
 def downsample_images(input_dir, output_dir, image_list):
+    output_str = ' Downsampling images '
+    print(output_str.center(50, '#'))
 
     if not image_list:
         print('No image list was initialized. Processing all images...')
@@ -112,6 +114,8 @@ def downsample_images(input_dir, output_dir, image_list):
 
 
 def rotate_images(input_dir, image_tracks, ext):
+    output_str = ' Rotating images '
+    print(output_str.center(50, '#'))
 
     # Find the smallest track
     smallest_track = None
@@ -145,13 +149,15 @@ def rotate_images(input_dir, image_tracks, ext):
 
 
 def split_images(input_dir, output_dir, size_x=1600, size_y=1600):
+    output_str = ' Splitting images '
+    print(output_str.center(50, '#'))
 
     # List all the image files in the data directory.
     image_files = [os.path.join(input_dir, f) for f in os.listdir(input_dir)
                    if f.endswith('.jpg') or f.endswith('.png') or f.endswith('.tif')]
 
     # Idea is to store only the names of matching bounding boxes in the match_pair_file
-    input_file = os.path.join('data', 'matches_bounding_boxes.txt')
+    input_file = os.path.join(input_dir, 'matches_bounding_boxes.txt')
 
     # Create an empty list to store the bounding box data
     pairs_bounding_boxes = []
