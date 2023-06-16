@@ -35,6 +35,8 @@ def main(parameters):
                   'The images are already rotated for the use of learned methods.')
 
             disk_feature_matching(input_dir, disk_path)
+            if parameters['colmap']:
+                h5_to_colmap(input_dir, disk_path)
 
     # Tile-based approach
     elif parameters['config'] == 't-ba':
@@ -45,13 +47,17 @@ def main(parameters):
             num_flightstrips = parameters['flightstrips']
             retrieve_image_orientation(input_dir, superglue_path, num_flightstrips)
 
-            tile_based_approach(input_dir)
+            tile_based_approach(input_dir, superglue_path)
+            if parameters['colmap']:
+                h5_to_colmap(input_dir, disk_path)
 
         elif parameters['rotation'] == 'rotated':
             print('Running the tile-based approach using exclusively SuperGlue.'
                   'The images are already rotated for the use of learned methods.')
 
-            tile_based_approach(input_dir)
+            tile_based_approach(input_dir, superglue_path)
+            if parameters['colmap']:
+                h5_to_colmap(input_dir, disk_path)
 
     # DISK approach
     elif parameters['config'] == 'disk':
@@ -59,6 +65,8 @@ def main(parameters):
             print('Running the approach using exclusively DISK.'
                   'Calculate the correct rotation for the historical aerial images.')
 
+            num_flightstrips = parameters['flightstrips']
+            retrieve_image_orientation(input_dir, disk_path, num_flightstrips)
             # TODO Use DISK features to find correct rotation!!
 
         elif parameters['rotation'] == 'rotated':
@@ -66,7 +74,6 @@ def main(parameters):
                   'The images are already rotated for the use of learned methods.')
 
             disk_feature_matching(input_dir, disk_path)
-
             if parameters['colmap']:
                 h5_to_colmap(input_dir, disk_path)
 

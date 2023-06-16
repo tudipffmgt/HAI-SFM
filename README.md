@@ -43,7 +43,7 @@ Steps for installation are the following:
 
 1. Clone the repository
 2. The dependencies are provided in the `requirements.txt` and in the respective feature matchers
-3. Most of the dependencies rely on Python 3.7 but we ran successful tests on 3.8 and 3.10
+3. Most of the dependencies rely on Python 3.7, but we ran successful tests on 3.8 and 3.10
 4. Move to the directory `cd HAI-SFM` and run `pip install -r requirements.txt`
 
 ## Getting started
