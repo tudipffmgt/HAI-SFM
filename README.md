@@ -48,7 +48,15 @@ Steps for installation are the following:
 
 ## Getting started
 
-### Running on sample image pair
+The default function call with all required arguments is:   
+`python main.py --image_dir data/multi-temporal --superglue_path SuperGluePretrainedNetwork --disk_path disk`  
 
-
-## Known issues
+### Parameters
+The call can be extended using the following arguments:
+- `--gpu`: Enable GPU usage (recommended!)
+- `--gpu_device`: Specify the GPU device index
+- `--image_dir`: Path to original images (currently .jpg, .png, or .tif are supported)
+- `--config`: Choice between default, tile-based approach, and disk approach as explained in the publication
+- `--rotation`: Specification if images are rotated correctly in between flight strips (default is 'not-rotated')
+- `--flightstrips`: Number of flightstrips if known. If the rotation is unknown this specifices the number of iteration to find the correct rotation (default = 10)
+- `--colmap`: Generate a COLMAP database file from all types of feature matches (useful when continuing with SfM)
