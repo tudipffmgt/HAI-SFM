@@ -25,15 +25,14 @@ def main(parameters):
         images_in_order = True
         along_track_overlap = parameters['along-track-overlap']
 
-    # Check the tested rotation angle
-    if parameters['rotation'] == 'not-_rotated':
-        rotation_angle = 180
+    # Set the rotation angle
+    rotation_angle = 180
     if parameters['rotation'] == 'not-rotated-90':
         rotation_angle = 90
 
     # Default configuration
     if parameters['config'] == 'default':
-        if parameters['rotation'] == 'not-rotated':
+        if parameters['rotation'] == 'not-rotated' or parameters['rotation'] == 'not-rotated-90':
             print('Running with default configuration using a combination of SuperGlue and DISK. '
                   'Calculate the correct rotation for the historical aerial images.')
             num_flightstrips = parameters['flightstrips']
@@ -53,7 +52,7 @@ def main(parameters):
 
     # Tile-based approach
     elif parameters['config'] == 't-ba':
-        if parameters['rotation'] == 'not-rotated':
+        if parameters['rotation'] == 'not-rotated' or parameters['rotation'] == 'not-rotated-90':
             print('Running the tile-based approach using exclusively SuperGlue.'
                   'Calculate the correct rotation for the historical aerial images.')
 
@@ -74,7 +73,7 @@ def main(parameters):
 
     # DISK approach
     elif parameters['config'] == 'disk':
-        if parameters['rotation'] == 'not-rotated':
+        if parameters['rotation'] == 'not-rotated' or parameters['rotation'] == 'not-rotated-90':
             print('Running the approach using exclusively DISK.'
                   'Calculate the correct rotation for the historical aerial images.')
 
@@ -119,5 +118,3 @@ if __name__ == '__main__':
     args = vars(args)
 
     main(args)
-
-
