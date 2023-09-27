@@ -45,7 +45,7 @@ def retrieve_image_orientation_disk(input_dir, disk_path, num_flightstrips):
     print(output_str.center(50, '#'))
 
 
-def retrieve_image_orientation(input_dir, superglue_path, num_flightstrips):
+def retrieve_image_orientation(input_dir, superglue_path, num_flightstrips, rotation_angle):
     output_str = ' Retrieve image orientation with SuperGlue '
     print('\n')
     print(output_str.center(50, '#'))
@@ -90,9 +90,9 @@ def retrieve_image_orientation(input_dir, superglue_path, num_flightstrips):
             break
 
         # Part 5: Rotate images of the smallest separate track
-        modified_images = rotate_images(input_dir, image_tracks, ext)
+        modified_images = rotate_images(input_dir, image_tracks, ext, rotation_angle)
         if modified_images == image_list:
-            print('Rotating the same list of images around 180° - '
+            print(f'Rotating the same list of images around {rotation_angle}° - '
                   'The correct rotation could not be found for all images.')
             break
         else:
