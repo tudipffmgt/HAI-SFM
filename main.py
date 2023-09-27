@@ -25,13 +25,19 @@ def main(parameters):
         images_in_order = True
         along_track_overlap = parameters['along-track-overlap']
 
+    # Check the tested rotation angle
+    if parameters['rotation'] == 'not-_rotated':
+        rotation_angle = 180
+    if parameters['rotation'] == 'not-rotated-90':
+        rotation_angle = 90
+
     # Default configuration
     if parameters['config'] == 'default':
         if parameters['rotation'] == 'not-rotated':
             print('Running with default configuration using a combination of SuperGlue and DISK. '
                   'Calculate the correct rotation for the historical aerial images.')
             num_flightstrips = parameters['flightstrips']
-            retrieve_image_orientation(input_dir, superglue_path, num_flightstrips)
+            retrieve_image_orientation(input_dir, superglue_path, num_flightstrips, rotation_angle)
 
             disk_feature_matching(input_dir, disk_path)
             if parameters['colmap']:
@@ -52,7 +58,7 @@ def main(parameters):
                   'Calculate the correct rotation for the historical aerial images.')
 
             num_flightstrips = parameters['flightstrips']
-            retrieve_image_orientation(input_dir, superglue_path, num_flightstrips)
+            retrieve_image_orientation(input_dir, superglue_path, num_flightstrips, rotation_angle)
 
             tile_based_approach(input_dir, superglue_path)
             if parameters['colmap']:
@@ -73,7 +79,7 @@ def main(parameters):
                   'Calculate the correct rotation for the historical aerial images.')
 
             num_flightstrips = parameters['flightstrips']
-            retrieve_image_orientation(input_dir, disk_path, num_flightstrips)
+            retrieve_image_orientation(input_dir, disk_path, num_flightstrips, rotation_angle)
             # TODO Use DISK features to find correct rotation!!
 
         elif parameters['rotation'] == 'rotated':
@@ -99,11 +105,11 @@ if __name__ == '__main__':
     parser.add_argument('--disk_path', type=Path, required=True, help="Path to DISK")
     parser.add_argument('--config', type=str, choices=['default', 't-ba', 'disk', 'tests'], default='default')
     parser.add_argument('--ordered', action='store_true', help='The images in the data directory are already ordered '
-                                                          'according to the flight route')
+                                                               'according to the flight route')
     parser.add_argument('--along-track-overlap', type=float, default=0.6, help='If the images are ordered the '
                                                                                'along-track overlap can be specified '
                                                                                'to reduce matching time')
-    parser.add_argument('--rotation', type=str, choices=['rotated', 'not-rotated'], default='not-rotated',
+    parser.add_argument('--rotation', type=str, choices=['rotated', 'not-rotated', 'not-rotated-90'], default='not-rotated',
                         help='Specify if the images are already rotated to be usable for learned matchers.')
     parser.add_argument('--flightstrips', type=int, default=10, help='Number of flightstrips if known. '
                                                                      'If not known the parameter is set to 10.')

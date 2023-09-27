@@ -114,7 +114,7 @@ def downsample_images(input_dir, output_dir, image_list):
     return downsample_factor, ext
 
 
-def rotate_images(input_dir, image_tracks, ext):
+def rotate_images(input_dir, image_tracks, ext, rotation_angle):
     output_str = ' Rotating images '
     print('\n')
     print(output_str.center(50, '#'))
@@ -138,14 +138,25 @@ def rotate_images(input_dir, image_tracks, ext):
 
         img_path = os.path.join(input_dir, f'{img_without_ext}{ext}')
 
-        print(f'Rotating image {img_path} by 180 degrees.')
-        img = cv2.imread(img_path)
-        img_rotated = cv2.rotate(img, cv2.ROTATE_180)
+        if rotation_angle == 180:
+            print(f'Rotating image {img_path} by 180 degrees.')
+            img = cv2.imread(img_path)
+            img_rotated = cv2.rotate(img, cv2.ROTATE_180)
 
-        cv2.imwrite(img_path, img_rotated)
+            cv2.imwrite(img_path, img_rotated)
 
-        # Append the rotated image path to the list
-        modified_images.append(img_path)
+            # Append the rotated image path to the list
+            modified_images.append(img_path)
+
+        elif rotation_angle == 90:
+            print(f'Rotating image {img_path} by 180 degrees.')
+            img = cv2.imread(img_path)
+            img_rotated = cv2.rotate(img, cv2.ROTATE_90_CLOCKWISE)
+
+            cv2.imwrite(img_path, img_rotated)
+
+            # Append the rotated image path to the list
+            modified_images.append(img_path)
 
     return modified_images
 
