@@ -11,9 +11,17 @@ We provide a mono-temporal and multi-temporal image sample for initial testing.
 
 If you are using this project for your research, please cite:
 ```
-@article{Maiwald,
-    author={Maiwald, Ferdinand and Feurer, Denis and Eltner, Anette}
-    title=XXX
+@article{Maiwald_HAI-SFM_2023,
+    author = {Ferdinand Maiwald and Denis Feurer and Anette Eltner},
+    title = {Solving photogrammetric cold cases using AI-based image matching: New potential for monitoring the past with historical aerial images},
+    journal = {ISPRS Journal of Photogrammetry and Remote Sensing},
+    volume = {206},
+    pages = {184-200},
+    year = {2023},
+    issn = {0924-2716},
+    doi = {https://doi.org/10.1016/j.isprsjprs.2023.11.008},
+    url = {https://www.sciencedirect.com/science/article/pii/S0924271623003131},
+    keywords = {Historical aerial images, Feature matching, Neural networks, Structure-from-motion, Digital surface model, Multi-temporal},
 ```
 
 If you are using the sample dataset for your research, please cite:
