@@ -2,7 +2,7 @@
 
 ## Introduction
 
-HAI-SFM provides code to the publication XXX.
+HAI-SFM provides code to the publication _Solving photogrammetric cold cases using AI-based image matching: New potential for monitoring the past with historical aerial images._
 It serves as a tool for an end-to-end Structure-from-Motion pipeline for historical aerial images.
 It modifies the feature matching methods [DISK](https://github.com/cvlab-epfl/disk) and [SuperGlue](https://github.com/magicleap/SuperGluePretrainedNetwork) to be usable on images with high resolution.
 Therefore, the default workflow downsamples the original images, finds corresponding image pairs and uses a modified parameter setting to match the original sized images.
